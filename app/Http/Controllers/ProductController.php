@@ -27,22 +27,19 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products');
-
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         return Product::create($data);
     }
 
-    public function show($id)
+    public function show(Product $product)
     {
-        return Product::findOrFail($id);
+        return $product;
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
-        $product = Product::findOrFail($id);
-
         $data = $request->validate([
             'name' => 'required',
             'price' => 'required|integer',
@@ -52,7 +49,7 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products');
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         $product->update($data);
@@ -60,9 +57,9 @@ class ProductController extends Controller
         return $product;
     }
 
-    public function destroy($id)
+    public function destroy(Product $product)
     {
-        Product::findOrFail($id)->delete();
+        $product->delete();
 
         return ['message' => 'Product deleted'];
     }

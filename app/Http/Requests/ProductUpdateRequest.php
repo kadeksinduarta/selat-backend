@@ -18,10 +18,12 @@ class ProductUpdateRequest extends FormRequest
     {
         // Aturan validasi sama, tetapi pastikan field yang di-update bisa diterima
         return [
-            'title' => 'sometimes|string|max:255', // Gunakan 'sometimes' agar user tidak wajib kirim semua data
+            'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
+            'category' => 'nullable|string|max:255',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 }

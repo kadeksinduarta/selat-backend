@@ -22,7 +22,13 @@ class ArticleController extends Controller
     // CREATE (POST /api/articles)
     public function store(ArticleStoreRequest $request): JsonResponse
     {
-        $article = Article::create($request->validated()); // Mass assignment yang aman
+        $data = $request->validated();
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('articles', 'public');
+        }
+
+        $article = Article::create($data); // Mass assignment yang aman
         
         return response()->json([
             'message' => 'Article created successfully!',
@@ -40,7 +46,13 @@ class ArticleController extends Controller
     // UPDATE (PUT/PATCH /api/articles/{article})
     public function update(ArticleUpdateRequest $request, Article $article): JsonResponse
     {
-        $article->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('articles', 'public');
+        }
+
+        $article->update($data);
         
         return response()->json([
             'message' => 'Article updated successfully!',

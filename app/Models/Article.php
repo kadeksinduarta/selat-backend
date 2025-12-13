@@ -13,6 +13,7 @@ class Article extends Model
         'image',
         'content',
         'author',
+        'category',
         'published_at'
     ];
 
@@ -28,5 +29,9 @@ class Article extends Model
         static::updating(function ($article) {
             $article->slug = Str::slug($article->title);
         });
+    }
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }

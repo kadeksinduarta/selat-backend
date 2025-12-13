@@ -19,7 +19,8 @@ class ArticleStoreRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'slug' => 'required|string|unique:articles|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|max:255',
+            'slug' => 'nullable|string|unique:articles|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|max:255',
+            'image' => 'nullable|image|max:2048',
             'is_published' => 'sometimes|boolean',
         ];
     }

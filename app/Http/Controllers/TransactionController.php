@@ -3,16 +3,54 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
+use App\Models\Product;
 
 class TransactionController extends Controller
 {
+    /**
+     * Display a listing of the user's transactions.
+     */
+    public function index(Request $request)
+    {
+        $status = $request->query('status');
+        
+        $query = Transaction::where('user_id', $request->user()->id)
+            ->with('items.product');
+        
+        if ($status) {
+            $query->where('status', $status);
+        }
+        
+        $transactions = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json($transactions);
+    }
+
+    /**
+     * Display the specified transaction.
+     */
+    public function show(Request $request, $id)
+    {
+        $transaction = Transaction::where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->with('items.product')
+            ->firstOrFail();
+
+        return response()->json($transaction);
+    }
+
+    /**
+     * Checkout - Create new transaction.
+     */
     public function checkout(Request $request)
     {
         $data = $request->validate([
-            'user_id' => 'required|integer',
             'items' => 'required|array',
             'items.*.product_id' => 'required|integer',
-            'items.*.qty' => 'required|integer|min:1'
+            'items.*.qty' => 'required|integer|min:1',
+            'pickup_date' => 'required|date|after_or_equal:today',
         ]);
 
         $total = 0;
@@ -41,11 +79,12 @@ class TransactionController extends Controller
             $product->save();
         }
 
-        // Simpan transaksi
+        // Simpan transaksi (gunakan user yang login)
         $transaction = Transaction::create([
-            'user_id' => $data['user_id'],
+            'user_id' => $request->user()->id,
             'total_amount' => $total,
-            'status' => 'pending'
+            'status' => 'pending',
+            'pickup_date' => $request->pickup_date,
         ]);
 
         // Simpan item transaksi
@@ -54,10 +93,45 @@ class TransactionController extends Controller
             TransactionItem::create($i);
         }
 
-        return [
+        return response()->json([
             'message' => 'Checkout berhasil',
             'transaction' => $transaction->load('items.product')
-        ];
+        ], 201);
+    }
+    /**
+     * Admin: Get all transactions
+     */
+    public function adminIndex(Request $request)
+    {
+        $status = $request->query('status');
+        
+        $query = Transaction::with(['items.product', 'user']);
+        
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+        
+        $transactions = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json($transactions);
     }
 
+    /**
+     * Admin: Update transaction status
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,processing,completed,cancelled'
+        ]);
+
+        $transaction = Transaction::findOrFail($id);
+        $transaction->status = $request->status;
+        $transaction->save();
+
+        return response()->json([
+            'message' => 'Status transaksi berhasil diupdate',
+            'transaction' => $transaction
+        ]);
+    }
 }

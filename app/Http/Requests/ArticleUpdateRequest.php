@@ -11,7 +11,7 @@ class ArticleUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,14 +23,19 @@ class ArticleUpdateRequest extends FormRequest
     public function rules(): array
     {
         // Ambil ID artikel dari route
-        $articleId = $this->route('article'); 
+        $article = $this->route('article'); 
+        $articleId = $article ? $article->id : null;
 
         return [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             // Saat update, 'slug' harus unik KECUALI untuk artikel yang sedang diupdate
-            'slug' => 'required|string|max:255|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|unique:articles,slug,' . $articleId,
+            'slug' => 'nullable|string|max:255|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|unique:articles,slug,' . $articleId,
+            'image' => 'nullable|image|max:2048',
             'is_published' => 'sometimes|boolean',
+            'author' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'published_at' => 'nullable|date',
         ];
     }
 }

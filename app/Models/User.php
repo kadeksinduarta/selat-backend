@@ -11,6 +11,22 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable; 
 
-    protected $fillable = ['name', 'email', 'password', 'role'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'phone', 'last_login'];
     protected $hidden = ['password'];
+
+    /**
+     * Get the addresses for the user.
+     */
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    /**
+     * Get the transactions for the user.
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

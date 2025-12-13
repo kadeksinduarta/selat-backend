@@ -9,7 +9,71 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    // ========================================
+    // USER AUTHENTICATION (Public)
+    // ========================================
+
+    public function registerUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'user',
+        ]);
+
+        $token = $user->createToken('user_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Registrasi berhasil',
+            'token' => $token,
+            'user' => $user,
+        ], 201);
+    }
+
+    public function loginUser(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $credentials['email'])->first();
+        if (!$user) {
+            return response()->json(['message' => 'Email atau password salah'], 401);
+        }
+        
+        if ($user->role !== 'user') {
+            return response()->json(['message' => 'Akun ini bukan akun user'], 403);
+        }
+        
+        if (!Hash::check($credentials['password'], $user->password)) {
+            return response()->json(['message' => 'Email atau password salah'], 401);
+        }
+
+        $token = $user->createToken('user_token')->plainTextToken;
+
+        // Track last login
+        $user->update(['last_login' => now()]);
+
+        return response()->json([
+            'message' => 'Login berhasil',
+            'token' => $token,
+            'user' => $user->fresh(),
+        ]);
+    }
+
+    // ========================================
+    // ADMIN AUTHENTICATION (Internal)
+    // ========================================
+
+    public function registerAdmin(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -25,12 +89,12 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Registrasi berhasil',
+            'message' => 'Registrasi admin berhasil',
             'admin' => $admin,
         ], 201);
     }
 
-    public function login(Request $request)
+    public function loginAdmin(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|email',
@@ -52,10 +116,13 @@ class AuthController extends Controller
 
         $token = $user->createToken('admin_token')->plainTextToken;
 
+        // Track last login
+        $user->update(['last_login' => now()]);
+
         return response()->json([
             'message' => 'Login berhasil',
             'token' => $token,
-            'admin' => $user,
+            'admin' => $user->fresh(),
         ]);
     }
 
