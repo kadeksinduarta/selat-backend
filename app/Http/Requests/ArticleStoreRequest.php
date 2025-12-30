@@ -20,7 +20,7 @@ class ArticleStoreRequest extends FormRequest
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'slug' => 'nullable|string|unique:articles|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|max:255',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'is_published' => 'sometimes|boolean',
         ];
     }

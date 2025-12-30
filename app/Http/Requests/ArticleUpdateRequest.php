@@ -31,7 +31,7 @@ class ArticleUpdateRequest extends FormRequest
             'content' => 'required|string',
             // Saat update, 'slug' harus unik KECUALI untuk artikel yang sedang diupdate
             'slug' => 'nullable|string|max:255|regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/|unique:articles,slug,' . $articleId,
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'is_published' => 'sometimes|boolean',
             'author' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
